@@ -9,7 +9,7 @@ import tkinter.filedialog as filedialog
 import sys
 
 # Versio
-VERSION = "1.0.0"
+VERSION = "ALPHA 1.0"
 
 class BackupManagerApp(ctk.CTk):
     def __init__(self):
