@@ -7,9 +7,10 @@ import customtkinter as ctk
 from win10toast import ToastNotifier
 import tkinter.filedialog as filedialog
 import sys
+import psutil
 
 # Versio
-VERSION = "ALPHA 1.0"
+VERSION = "0.1.0-alpha"
 
 class BackupManagerApp(ctk.CTk):
     def __init__(self):
@@ -17,7 +18,7 @@ class BackupManagerApp(ctk.CTk):
 
         # Ikkunan asetukset
         self.title(f"EA FC 25 Backup Manager v{VERSION}")
-        self.geometry("400x420")
+        self.geometry("400x450")
         self.resizable(False, False)
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
@@ -47,19 +48,28 @@ class BackupManagerApp(ctk.CTk):
         exit_button = ctk.CTkButton(self, text="Exit", command=self.exit_app)
         exit_button.pack(pady=5, padx=20, fill="x")
 
+        # FC 25 prosessin status
+        self.fc25_status_label = ctk.CTkLabel(self, text="Checking FC 25 status...", text_color="gray")
+        self.fc25_status_label.pack(pady=(10, 5))
+
         credit_label = ctk.CTkLabel(self, text="Code by: mryoshl | UI by: Linksu", text_color="gold")
         credit_label.pack(pady=(10, 0))
 
         version_label = ctk.CTkLabel(self, text=f"Version {VERSION}", text_color="gray")
         version_label.pack(pady=(0, 5))
 
-        # Ilmoitusobjekti
+        # Ilmoitukset
         self.notifier = ToastNotifier()
 
         # Ajastimet
         self.next_backup_time = datetime.now() + timedelta(minutes=30)
         self.auto_event = self.after(30 * 60 * 1000, self.auto_backup)
         self.after(1000, self.update_countdown)
+        self.update_fc25_status()
+
+        # Näppäinoikotiet
+        self.bind('<Control-q>', lambda event: self.exit_app())
+        self.bind('<Control-b>', lambda event: self.manual_backup())
 
     def load_or_create_config(self):
         if not os.path.exists(self.config_file):
@@ -104,7 +114,7 @@ class BackupManagerApp(ctk.CTk):
         with open(self.config_file, 'w') as f:
             self.config.write(f)
 
-    def manual_backup(self):
+    def manual_backup(self, event=None):
         if hasattr(self, 'auto_event') and self.auto_event is not None:
             try:
                 self.after_cancel(self.auto_event)
@@ -160,6 +170,16 @@ class BackupManagerApp(ctk.CTk):
             self.next_backup_label.configure(text=f"Next backup in: {minutes_left} minutes")
         self.after(1000, self.update_countdown)
 
+    def update_fc25_status(self):
+        is_running = any(proc.name() == "FC25.exe" for proc in psutil.process_iter(['name']))
+
+        if is_running:
+            self.fc25_status_label.configure(text="FC 25 is running", text_color="green")
+        else:
+            self.fc25_status_label.configure(text="FC 25 is not running", text_color="red")
+
+        self.after(5000, self.update_fc25_status)
+
     def open_backup_folder(self):
         try:
             os.startfile(self.backup_path)
@@ -176,14 +196,13 @@ class BackupManagerApp(ctk.CTk):
                                  "Config file opened. Please restart the app after saving changes.",
                                  duration=5, threaded=True)
 
-    def exit_app(self):
+    def exit_app(self, event=None):
         self.destroy()
 
 # Käynnistetään sovellus
 if __name__ == "__main__":
     app = BackupManagerApp()
 
-    # Asetetaan ikoni käyttöön .exe-paketeille
     if getattr(sys, 'frozen', False):
         app.iconbitmap(os.path.join(sys._MEIPASS, "new_icon.ico"))
 

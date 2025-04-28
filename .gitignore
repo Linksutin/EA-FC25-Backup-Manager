@@ -1,0 +1,35 @@
+# Python yleinen
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments (jos käytät)
+env/
+venv/
+ENV/
+
+# PyInstaller buildit
+build/
+dist/
+*.spec
+
+# Executable-tiedostot
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Muut tilapäistiedostot
+*.log
+*.tmp
+*.bak
+*.db
+*.cache
+
+# Mac OS ja Windowsin roska
+.DS_Store
+Thumbs.db
+
+# Config
+config.ini
