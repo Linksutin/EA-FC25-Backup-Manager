@@ -1,0 +1,31 @@
+# UTF-8
+
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(0, 1, 0, 0),
+    prodvers=(0, 1, 0, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+    ),
+  kids=[
+    StringFileInfo([
+      StringTable(
+        '040904B0',
+        [
+          StringStruct('CompanyName', 'mryoshl & Linksu'),
+          StringStruct('FileDescription', 'EA FC 25 Backup Manager'),
+          StringStruct('FileVersion', '0.1.0-alpha'),
+          StringStruct('InternalName', 'EA FC 25 Backup Manager'),
+          StringStruct('LegalCopyright', '2025 © mryoshl & Linksu'),
+          StringStruct('OriginalFilename', 'EA FC 25 Backup Manager.exe'),
+          StringStruct('ProductName', 'EA FC 25 Backup Manager'),
+          StringStruct('ProductVersion', '0.1.0-alpha')
+        ])
+      ]),
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
+  ]
+)
