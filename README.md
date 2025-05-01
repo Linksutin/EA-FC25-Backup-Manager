@@ -1,7 +1,7 @@
 # EA FC Backup Manager
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Linksutin/EA-FC25-Backup-Manager/main/logo.png" alt="EA FC 25 Backup Manager Logo" width="200"/>
+  <img src="https://media.discordapp.net/attachments/889153695042916382/1367591891054366740/65f37b13-5564-4916-ae28-6ddd3bb8673d.png?ex=681524b3&is=6813d333&hm=6283925d0d1224d1e5c7c4449b34bf1861c9dd46169bfef7f5a216d5b7674ca0&=&format=webp&quality=lossless&width=960&height=960" alt="EA FC 25 Backup Manager Logo" width="200"/>
 </p>
 
 EA FC 25 Backup Manager is a lightweight and user-friendly backup tool built to protect your EA SPORTS FC 25 settings and saves.
