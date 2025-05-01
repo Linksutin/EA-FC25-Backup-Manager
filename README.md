@@ -1,4 +1,4 @@
-# EA FC 25 Backup Manager
+# EA FC Backup Manager
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Linksutin/EA-FC25-Backup-Manager/main/logo.png" alt="EA FC 25 Backup Manager Logo" width="200"/>
