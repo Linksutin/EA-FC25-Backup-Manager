@@ -9,6 +9,7 @@ from win10toast import ToastNotifier
 import winreg
 import requests
 from packaging import version
+from PIL import Image
 
 # Global hotkeys library (requires admin privileges)
 try:
@@ -19,7 +20,7 @@ except ImportError:
 # Application version and GitHub repo
 VERSION = "0.4.0-alpha"
 GITHUB_OWNER = "Linksutin"
-GITHUB_REPO = "EA-FC25-Backup-Manager"
+GITHUB_REPO = "EA-FC-Backup-Manager"
 
 # Windows registry path for settings
 REG_PATH = r"Software\\EAFC25BackupManager"
@@ -79,15 +80,13 @@ class GitHubUpdater:
 
     def download_and_apply(self, asset_url):
         new_exe = os.path.join(os.getcwd(), "EAFC25BackupManager_new.exe")
-
         # Download new exe
         response = requests.get(asset_url, stream=True, timeout=30)
         response.raise_for_status()
         with open(new_exe, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-
-        # Execute new exe and exit old process
+        # Execute new exe, replacing this process
         os.execv(new_exe, [new_exe] + sys.argv[1:])
 
     def check_and_update(self):
@@ -97,11 +96,17 @@ class GitHubUpdater:
             asset = next((a for a in release.get("assets", []) if a.get("name", "").endswith(".exe")), None)
             if asset:
                 self.download_and_apply(asset.get("browser_download_url"))
-        return False
 
 class BackupManagerApp(ctk.CTk):
     def __init__(self):
-        # Automatic update on startup
+        # Cleanup leftover updater exe
+        updater_path = os.path.join(os.getcwd(), "EAFC25BackupManager_new.exe")
+        if os.path.exists(updater_path):
+            try:
+                os.remove(updater_path)
+            except Exception:
+                pass
+        # Check for updates
         try:
             GitHubUpdater(VERSION).check_and_update()
         except Exception:
@@ -109,7 +114,13 @@ class BackupManagerApp(ctk.CTk):
 
         super().__init__()
 
-        # Register global hotkeys
+        self.title(translations["en"]["title"])
+        self.geometry("450x580")
+        self.resizable(False, False)
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
+
+        # Global hotkeys
         if keyboard:
             try:
                 keyboard.add_hotkey('ctrl+b', self.manual_backup)
@@ -117,14 +128,7 @@ class BackupManagerApp(ctk.CTk):
             except Exception:
                 pass
 
-        # Window settings
-        self.title(translations["en"]["title"])
-        self.geometry("450x580")
-        self.resizable(False, False)
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
-
-        # Initialize settings
+        # Settings
         self.toaster = ToastNotifier()
         self.language = self.read_registry("language") or "en"
         self.source_path = self.read_registry("source_path") or os.path.join(
@@ -133,68 +137,56 @@ class BackupManagerApp(ctk.CTk):
         self.backup_path = self.read_registry("backup_path") or os.path.expanduser("~\\Documents")
         self.auto_backup_interval = int(self.read_registry("auto_backup_interval") or 30)
         self.last_backup_time = self.read_registry("last_backup_time") or "Never"
-
         next_time = self.read_registry("next_backup_time")
         try:
             self.next_backup_time = datetime.strptime(next_time, "%Y-%m-%d %H:%M:%S") if next_time else datetime.now() + timedelta(minutes=self.auto_backup_interval)
         except Exception:
             self.next_backup_time = datetime.now() + timedelta(minutes=self.auto_backup_interval)
 
-        # Build UI and start loops
+        # Build UI
         self.build_ui()
         self.check_fc25_status()
         self.update_countdown()
 
     def build_ui(self):
-        # Settings button
-        ctk.CTkButton(
-            self, text="⚙️", width=40, height=40,
-            command=self.open_settings
-        ).place(x=400, y=10)
+        # Logo and credits
+        try:
+            logo_path = os.path.join(os.path.dirname(__file__), "logo.png")
+            logo_image = Image.open(logo_path).resize((80, 80))
+            self.logo_ctk_image = ctk.CTkImage(light_image=logo_image, dark_image=logo_image, size=(80, 80))
+            ctk.CTkLabel(self, image=self.logo_ctk_image, text="").pack(pady=(20, 5))
+        except Exception as e:
+            print("Logo load error:", e)
+        ctk.CTkLabel(self, text="by Linksu & mryoshl", font=("Arial", 14), text_color="gray").pack(pady=(0, 15))
 
-        # Last backup label
+        # Last backup
         self.last_backup_label = ctk.CTkLabel(
             self, text=f"{translations[self.language]['last_backup']}: {self.format_last_backup_time()}"
         )
-        self.last_backup_label.pack(pady=(50, 5))
-
-        # Next backup label
+        self.last_backup_label.pack(pady=5)
+        # Next backup
         self.next_backup_label = ctk.CTkLabel(
             self, text=f"{translations[self.language]['next_backup']}: {self.auto_backup_interval} {translations[self.language]['minutes']}"
         )
         self.next_backup_label.pack(pady=5)
-
-        # Manual backup & Open folder
+        # Manual & open folder
         ctk.CTkButton(
-            self, text=translations[self.language]['manual_backup'],
-            command=self.manual_backup
+            self, text=translations[self.language]['manual_backup'], command=self.manual_backup
         ).pack(pady=10, padx=40, fill="x")
         ctk.CTkButton(
-            self, text=translations[self.language]['open_folder'],
-            command=self.open_backup_folder
+            self, text=translations[self.language]['open_folder'], command=self.open_backup_folder
         ).pack(pady=10, padx=40, fill="x")
-
         # Separator
-        ctk.CTkLabel(self, text="─" * 70, text_color="gray").pack(pady=(40, 5))
-
+        ctk.CTkLabel(self, text="─" * 70, text_color="gray").pack(pady=20)
         # FC25 status
         self.fc25_status_label = ctk.CTkLabel(
-            self, text="Checking FC 25 status...",
-            text_color="gray", font=("Arial", 14)
+            self, text="Checking FC 25 status...", text_color="gray", font=("Arial", 14)
         )
-        self.fc25_status_label.pack(pady=(40, 5))
-
-        # Version label
+        self.fc25_status_label.pack(pady=5)
+        # Version
         ctk.CTkLabel(
-            self, text=f"Version {VERSION}",
-            text_color="gray", font=("Arial", 14)
+            self, text=f"Version {VERSION}", text_color="gray", font=("Arial", 14)
         ).pack(pady=(20, 5))
-
-        # Credits
-        ctk.CTkLabel(
-            self, text="Code by: mryoshl | UI by: Linksu",
-            text_color="gold", font=("Arial", 18)
-        ).pack(side="bottom", pady=10)
 
     def manual_backup(self, event=None):
         now = datetime.now()
@@ -214,8 +206,7 @@ class BackupManagerApp(ctk.CTk):
             self.notify("Backup Failed", str(e))
 
     def open_backup_folder(self):
-        if os.path.exists(self.backup_path):
-            os.startfile(self.backup_path)
+        if os.path.exists(self.backup_path): os.startfile(self.backup_path)
 
     def check_fc25_status(self):
         running = any(p.name() == "FC25.exe" for p in psutil.process_iter(['name']))
@@ -236,100 +227,6 @@ class BackupManagerApp(ctk.CTk):
         )
         self.after(60000, self.update_countdown)
 
-    def open_settings(self):
-        if hasattr(self, 'settings_window') and self.settings_window.winfo_exists():
-            self.settings_window.focus()
-            return
-        self.settings_window = ctk.CTkToplevel(self)
-        self.settings_window.title(translations[self.language]['settings'])
-        self.settings_window.geometry("300x400")
-        self.settings_window.resizable(False, False)
-        self.center_window(self.settings_window, 300, 400)
-        self.settings_window.attributes("-topmost", True)
-
-        ctk.CTkLabel(
-            self.settings_window,
-            text=translations[self.language]['settings'],
-            font=("Arial", 20)
-        ).pack(pady=10)
-
-        # Language selection
-        frame = ctk.CTkFrame(self.settings_window)
-        frame.pack(pady=10, padx=20, fill="x")
-        ctk.CTkLabel(frame, text=translations[self.language]['language']).pack(side="left", padx=10)
-        menu = ctk.CTkOptionMenu(
-            frame,
-            values=["🇬🇧 English", "🇫🇮 Suomi"],
-            command=self.language_selected
-        )
-        menu.pack(side="right")
-        menu.set("🇬🇧 English" if self.language == "en" else "🇫🇮 Suomi")
-
-        ctk.CTkButton(
-            self.settings_window,
-            text=translations[self.language]['settings_folder'],
-            command=self.change_settings_folder
-        ).pack(pady=10, padx=20, fill="x")
-
-        ctk.CTkButton(
-            self.settings_window,
-            text=translations[self.language]['backup_folder'],
-            command=self.change_backup_folder
-        ).pack(pady=10, padx=20, fill="x")
-
-        ctk.CTkButton(
-            self.settings_window,
-            text=translations[self.language]['backup_interval'],
-            command=self.change_backup_interval
-        ).pack(pady=10, padx=20, fill="x")
-
-    def language_selected(self, choice):
-        lang = "en" if "English" in choice else "fi"
-        self.change_language(lang)
-
-    def change_settings_folder(self):
-        new_folder = filedialog.askdirectory(
-            title=translations[self.language]['settings_folder'],
-            initialdir=self.source_path
-        )
-        if new_folder:
-            self.source_path = new_folder
-            self.write_registry("source_path", new_folder)
-
-    def change_backup_folder(self):
-        new_folder = filedialog.askdirectory(
-            title=translations[self.language]['backup_folder'],
-            initialdir=self.backup_path
-        )
-        if new_folder:
-            self.backup_path = new_folder
-            self.write_registry("backup_path", new_folder)
-
-    def change_backup_interval(self):
-        iw = ctk.CTkToplevel(self)
-        iw.title(translations[self.language]['backup_interval'])
-        iw.geometry("300x200")
-        iw.resizable(False, False)
-        iw.attributes("-topmost", True)
-
-        ctk.CTkLabel(iw, text=translations[self.language]['backup_interval'], font=("Arial", 16)).pack(pady=(20, 10))
-        slider = ctk.CTkSlider(iw, from_=1, to=180, number_of_steps=179)
-        slider.set(self.auto_backup_interval)
-        slider.pack(pady=10)
-        value_lbl = ctk.CTkLabel(iw, text=f"{self.auto_backup_interval} {translations[self.language]['minutes']}")
-        value_lbl.pack()
-        slider.configure(command=lambda v: value_lbl.configure(text=f"{int(float(v))} {translations[self.language]['minutes']}"))
-
-        def save_interval():
-            self.auto_backup_interval = int(slider.get())
-            self.write_registry("auto_backup_interval", str(self.auto_backup_interval))
-            self.next_backup_time = datetime.now() + timedelta(minutes=self.auto_backup_interval)
-            self.update_countdown()
-            iw.destroy()
-
-        ctk.CTkButton(iw, text=translations[self.language]['save'], command=save_interval).pack(pady=10)
-
-    # manual_backup method defined above, no duplicate here
     def notify(self, title, msg):
         self.toaster.show_toast(title, msg, duration=5, threaded=True)
 
@@ -342,7 +239,7 @@ class BackupManagerApp(ctk.CTk):
             val, _ = winreg.QueryValueEx(key, name)
             winreg.CloseKey(key)
             return val
-        except Exception:
+        except:
             return None
 
     def write_registry(self, name, val):
@@ -350,16 +247,10 @@ class BackupManagerApp(ctk.CTk):
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
             winreg.SetValueEx(key, name, 0, winreg.REG_SZ, val)
             winreg.CloseKey(key)
-        except Exception:
+        except:
             pass
 
-    def exit_app(self, event=None):
-        self.destroy()
-
-    def center_window(self, window, w, h):
-        x = (self.winfo_rootx() + self.winfo_width() // 2) - (w // 2)
-        y = (self.winfo_rooty() + self.winfo_height() // 2) - (h // 2)
-        window.geometry(f"{w}x{h}+{x}+{y}")
+    def exit_app(self, event=None): self.destroy()
 
 if __name__ == "__main__":
     app = BackupManagerApp()

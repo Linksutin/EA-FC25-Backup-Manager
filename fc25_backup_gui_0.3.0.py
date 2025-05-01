@@ -17,9 +17,9 @@ except ImportError:
     keyboard = None
 
 # Application version and GitHub repo
-VERSION = "0.4.0-alpha"
+VERSION = "0.3.0-alpha"
 GITHUB_OWNER = "Linksutin"
-GITHUB_REPO = "EA-FC25-Backup-Manager"
+GITHUB_REPO = "EA-FC-Backup-Manager"
 
 # Windows registry path for settings
 REG_PATH = r"Software\\EAFC25BackupManager"
