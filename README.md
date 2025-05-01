@@ -34,7 +34,7 @@ The game is known to sometimes corrupt save files (especially in Career Mode). T
 
 ✅ That's it — no installation needed!
 
-**Version:** 0.3.0-alpha  
+**Newest Version:** 0.3.0-alpha  
 **Code:** mryoshl | **UI:** Linksu
 
 If Windows SmartScreen or antivirus flags the app, it's likely due to it being a newly downloaded .exe file. You can safely allow it if downloaded from the official GitHub page.
