@@ -1,5 +1,9 @@
 # EA FC 25 Backup Manager
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Linksutin/EA-FC25-Backup-Manager/main/logo.png" alt="EA FC 25 Backup Manager Logo" width="200"/>
+</p>
+
 EA FC 25 Backup Manager is a lightweight and user-friendly backup tool built to protect your EA SPORTS FC 25 settings and saves.
 
 The game is known to sometimes corrupt save files (especially in Career Mode). This application automatically and manually backs up your settings, ensuring you never lose important progress again.
@@ -26,6 +30,7 @@ The game is known to sometimes corrupt save files (especially in Career Mode). T
 4. Double-click to run the application.
 5. Choose your settings and backup folders on first launch.
 6. The app will automatically back up your data based on the selected interval.
+7. The app will automatically update itself — you only need to download it once.
 
 ✅ That's it — no installation needed!
 
@@ -33,5 +38,3 @@ The game is known to sometimes corrupt save files (especially in Career Mode). T
 **Code:** mryoshl | **UI:** Linksu
 
 If Windows SmartScreen or antivirus flags the app, it's likely due to it being a newly downloaded .exe file. You can safely allow it if downloaded from the official GitHub page.
-
-$1
