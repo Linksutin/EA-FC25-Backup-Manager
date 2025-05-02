@@ -157,6 +157,18 @@ class BackupManagerApp(ctk.CTk):
             self, text=f"{translations[self.language]['last_backup']}: {self.format_last_backup_time()}"
         )
         self.last_backup_label.pack(pady=(50, 5))
+    
+    def build_ui(self):
+        # Logo and credits
+        try:
+            path = os.path.join(os.path.dirname(__file__), 'logo.png')
+            img = Image.open(path).resize((80,80))
+            self.logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=(80,80))
+            ctk.CTkLabel(self, image=self.logo_img, text='').pack(pady=(20,5))
+        except Exception:
+            pass
+        ctk.CTkLabel(self, text='by Linksu & mryoshl', text_color='gray', font=('Arial',14)).pack(pady=(0,15))
+
 
         # Next backup label
         self.next_backup_label = ctk.CTkLabel(
